@@ -10,8 +10,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "synth": "CURRENT_ENV=DEV cdk synth MainStack-DEV --no-staging > template.yaml",
-    "deploy": "npx cdk deploy --context CURRENT_ENV=DEV --all --require-approval never --outputs-file output.json",
-    "destroy": "npx cdk destroy --context CURRENT_ENV=DEV --all --force"
+    "deploy": "npx cdk deploy --context CURRENT_ENV=$CURRENT_ENV --all --require-approval never --outputs-file output.json",
+    "destroy": "npx cdk destroy --context CURRENT_ENV=$CURRENT_ENV  --all --force"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.130",
