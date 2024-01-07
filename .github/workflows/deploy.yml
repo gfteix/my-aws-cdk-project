@@ -5,7 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  deploy:
+    name: Deployment to ${{ github}}
     runs-on: ubuntu-latest
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -27,5 +28,6 @@ jobs:
       - name: Deploy Stack
         run: yarn deploy
         env:
+          CURRENT_ENV: ${{ vars.CURRENT_ENV }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: us-east-1
