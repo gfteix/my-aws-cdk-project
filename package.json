@@ -12,8 +12,8 @@
     "synth": "CURRENT_ENV=DEV cdk synth MainStack-DEV --no-staging > template.yaml",
     "deploy": "npx cdk deploy --context CURRENT_ENV=$CURRENT_ENV --all --require-approval never --outputs-file output.json",
     "destroy": "npx cdk destroy --context CURRENT_ENV=$CURRENT_ENV  --all --force",
-    "lint:fix": "eslint --fix --ext src/ stacks/ test/",
-    "lint": "eslint --ext src/ stacks/ test/"
+    "lint:fix": "eslint --fix --ext .ts src/ stacks/ test/",
+    "lint": "eslint --ext .ts src/ stacks/ test/"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.130",
