@@ -1,0 +1,6 @@
+.eslintrc*.js
+*.d.ts
+commitlint.config.js
+jest.config.jest
+release.config.js
+node_modules/
