@@ -1,14 +1,10 @@
-# Welcome to your CDK TypeScript project
+# AWS CDK Application
 
-This is a blank project for CDK development with TypeScript.
+Provisioning of a DynamoDB table and some lambdas.
+Allow deployment of resources to different environments (create one stack for each env based on the CURRENT_ENV variable)
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-## Useful commands
-
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+TODO: 
+- API Gateway
+- Unit Tests
+- Github actions to deploy every time a PR is merged with 
+- Github actions to run unit tests and lint for every commit pushed

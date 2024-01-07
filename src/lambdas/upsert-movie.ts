@@ -1,40 +1,55 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { PutCommand, DynamoDBDocumentClient, DeleteCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { myMiddleware } from '../middleware';
-import { getValidBody } from '../get-body';
-import { Movie, MovieSchema, PartialMovieSchema } from '../types/movie.interface';
-import { StatusCodes } from 'http-status-codes';
-import { BadRequestError } from '../errors/bad-request-error';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } from 'aws-lambda'
+import { PutCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
+import { type Movie, MovieSchema, PartialMovieSchema } from '../types/movie.interface'
+import { StatusCodes } from 'http-status-codes'
 
+// global, to be chared across close calls
+const client = new DynamoDBClient({})
+const dynamo = DynamoDBDocumentClient.from(client)
+const tableName = process.env.MOVIE_TABLE_URL
 
-//global, to be chared across close calls
-const client = new DynamoDBClient({});
-const dynamo = DynamoDBDocumentClient.from(client);
-const tableName = "movies-dynamodb";
+const badRequestError = (error: string): APIGatewayProxyResult => ({
+  body: JSON.stringify({
+    message: error
+  }),
+  statusCode: StatusCodes.BAD_REQUEST,
+  headers: {
+    'content-type': 'application/json'
+  }
+})
 
-export async function upsertMovie(event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
-
+export async function handler (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
   const schema = event.httpMethod === 'POST' ? MovieSchema : PartialMovieSchema
 
-  const payload = getValidBody<Movie>(schema, event.body)
+  if (event.body == null) {
+    return badRequestError('Invalid Body')
+  }
 
-    await dynamo.send(
-      new PutCommand({
-        TableName: tableName,
-        Item: payload
-      })
-    )
+  const parseResult = schema.safeParse(
+    JSON.parse(event.body)
+  )
 
-    return {
-      body: JSON.stringify({
-        message: 'Movie Created'
-      }),
-      statusCode: StatusCodes.OK,
-      headers: {
-        'content-type': 'application/json'
-      }
+  if (!parseResult.success) {
+    return badRequestError(JSON.stringify(parseResult.error))
+  }
+
+  const payload = parseResult.data as Movie
+
+  await dynamo.send(
+    new PutCommand({
+      TableName: tableName,
+      Item: payload
+    })
+  )
+
+  return {
+    body: JSON.stringify({
+      message: `Movie ${(event.httpMethod === 'POST') ? 'Created' : 'Updated'}`
+    }),
+    statusCode: (event.httpMethod === 'POST') ? StatusCodes.CREATED : StatusCodes.ACCEPTED,
+    headers: {
+      'content-type': 'application/json'
     }
+  }
 }
-
-export const handler = myMiddleware(upsertMovie)
