@@ -1,8 +1,13 @@
-name: Deploy AWS CDK Application
+name: Deploy CDK Application
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Environment
+        required: true
+        default: dev
 
 jobs:
   deploy:

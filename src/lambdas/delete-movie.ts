@@ -6,7 +6,6 @@ import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } f
 // global, to be chared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
-const tableName = process.env.MOVIE_TABLE_URL
 
 const badRequestResponse = (message: string): APIGatewayProxyResult => ({
   body: JSON.stringify({
@@ -19,6 +18,8 @@ const badRequestResponse = (message: string): APIGatewayProxyResult => ({
 })
 
 export async function deleteMovie (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
+  const tableName = process.env.MOVIE_TABLE_URL
+
   try {
     const id = event.pathParameters?.id
 
