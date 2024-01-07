@@ -5,6 +5,10 @@
   "bin": {
     "lambda-gateway-cdk": "bin/index.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gfteix/my-aws-cdk-project"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
