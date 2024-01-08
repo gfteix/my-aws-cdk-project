@@ -10,6 +10,11 @@ module.exports = {
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/npm",
-    "@semantic-release/github"
+    {
+      "npmPublish": false,
+    },
+    "@semantic-release/github",
+    "@semantic-release/git"
+
 ],
 }
