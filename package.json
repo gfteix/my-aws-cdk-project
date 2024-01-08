@@ -2,6 +2,7 @@
   "name": "lambda-gateway-cdk",
   "license": "MIT",
   "version": "0.1.0",
+  "private": true,
   "bin": {
     "lambda-gateway-cdk": "bin/index.ts"
   },
