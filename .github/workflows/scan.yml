@@ -44,5 +44,5 @@ jobs:
         with:
           route: POST /repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches
           ref: ${{ github.ref }}
-          inputs:
+          inputs: |
             environment: ${{ steps.setvars.outputs.environment }}
