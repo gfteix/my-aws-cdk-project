@@ -7,7 +7,7 @@ import { MainStack } from './main-stack'
 const app = new cdk.App()
 
 const env = process.env.CURRENT_ENV ?? ''
-const validEnvs = ['dev'] // I will only use dev since it is only a study project, but should be something like dev,qa,prod
+const validEnvs = ['dev', 'prod']
 
 if (!validEnvs.includes(env)) {
   throw new Error('Invalid env: ' + env)
