@@ -1,12 +1,20 @@
+/* eslint-disable no-new */
 import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { LambdaIntegration, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway'
+import { AccessLogFormat, Deployment, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi, Stage } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
+import { LogGroup } from 'aws-cdk-lib/aws-logs'
 import { type Construct } from 'constructs'
 import { config } from 'dotenv'
 
 config()
+
+interface MainStackFunctions {
+  upsertMovieFunction: NodejsFunction
+  getMoviesFunction: NodejsFunction
+  deleteMovieFunction: NodejsFunction
+}
 
 export class MainStack extends Stack {
   private readonly currentEnv: string
@@ -81,6 +89,14 @@ export class MainStack extends Stack {
     dynamoTable.grantReadData(getMoviesFunction)
     dynamoTable.grantReadWriteData(deleteMovieFunction)
 
+    this.buildApiGateway({
+      getMoviesFunction,
+      upsertMovieFunction,
+      deleteMovieFunction
+    })
+  }
+
+  buildApiGateway (functions: MainStackFunctions): void {
     const restApi = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
       restApiName: `movie-api-${this.currentEnv}`,
       deployOptions: {
@@ -92,31 +108,48 @@ export class MainStack extends Stack {
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY
     })
 
-    // https://copyprogramming.com/howto/how-get-path-params-in-cdk-apigateway-lambda
-    // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html
-
     const movies = restApi.root.addResource('movies')
 
     movies.addMethod('GET', new LambdaIntegration(
-      getMoviesFunction
+      functions.getMoviesFunction
     ))
 
     movies.addMethod('POST', new LambdaIntegration(
-      upsertMovieFunction
+      functions.upsertMovieFunction
     ))
 
     movies.addMethod('PUT', new LambdaIntegration(
-      upsertMovieFunction
+      functions.upsertMovieFunction
     ))
 
     const movie = movies.addResource('{id}')
 
     movie.addMethod('GET', new LambdaIntegration(
-      getMoviesFunction
+      functions.getMoviesFunction
     ))
 
     movie.addMethod('DELETE', new LambdaIntegration(
-      deleteMovieFunction
+      functions.deleteMovieFunction
     ))
+
+    const deployment = new Deployment(this, 'Deployment', { api: restApi })
+    const deploymentLog = new LogGroup(this, `${this.currentEnv}-logs`)
+
+    new Stage(this, this.currentEnv, {
+      deployment,
+      stageName: this.currentEnv,
+      accessLogDestination: new LogGroupLogDestination(deploymentLog),
+      accessLogFormat: AccessLogFormat.jsonWithStandardFields({
+        caller: false,
+        httpMethod: true,
+        ip: true,
+        protocol: true,
+        requestTime: true,
+        resourcePath: true,
+        responseLength: true,
+        status: true,
+        user: true
+      })
+    })
   }
 }
