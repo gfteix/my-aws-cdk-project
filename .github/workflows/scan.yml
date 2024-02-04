@@ -34,10 +34,10 @@ jobs:
         id: setvars
         run: |
           if [[ "${{ github.base_ref }}" == "dev" || "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            echo "environment=dev" >> $GITHUB_ENV
+            echo "environment=dev" >> $GITHUB_OUTPUT
           fi
           if [[ "${{ github.base_ref }}" == "main" || "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "environment=prod" >> $GITHUB_ENV
+            echo "environment=prod" >> $GITHUB_OUTPUT
           fi
       - name: Trigger deploy
         uses: octokit/request-action@v2.x
