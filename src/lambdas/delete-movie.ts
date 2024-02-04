@@ -18,8 +18,6 @@ const badRequestResponse = (message: string): APIGatewayProxyResult => ({
 })
 
 export async function deleteMovie (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
-  const tableName = process.env.MOVIE_TABLE_URL
-
   try {
     const id = event.pathParameters?.id
 
@@ -29,7 +27,7 @@ export async function deleteMovie (event: APIGatewayProxyEvent, context: Context
 
     await dynamo.send(
       new DeleteCommand({
-        TableName: tableName,
+        TableName: process.env.MOVIE_TABLE_URL,
         Key: {
           id
         }

@@ -7,7 +7,6 @@ import { StatusCodes } from 'http-status-codes'
 // global, to be chared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
-const tableName = process.env.MOVIE_TABLE_URL
 
 const badRequestError = (error: string): APIGatewayProxyResult => ({
   body: JSON.stringify({
@@ -20,6 +19,9 @@ const badRequestError = (error: string): APIGatewayProxyResult => ({
 })
 
 export async function handler (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
+  console.log(event)
+  console.log(context)
+
   const schema = event.httpMethod === 'POST' ? MovieSchema : PartialMovieSchema
 
   if (event.body == null) {
@@ -38,7 +40,7 @@ export async function handler (event: APIGatewayProxyEvent, context: Context): P
 
   await dynamo.send(
     new PutCommand({
-      TableName: tableName,
+      TableName: process.env.MOVIE_TABLE_URL,
       Item: payload
     })
   )

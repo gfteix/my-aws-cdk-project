@@ -6,7 +6,6 @@ import { StatusCodes } from 'http-status-codes'
 // global, to be chared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
-const tableName = process.env.MOVIE_TABLE_URL
 
 export async function handler (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
   const id = event.pathParameters?.id
@@ -43,7 +42,7 @@ export async function handler (event: APIGatewayProxyEvent, context: Context): P
 
 async function getAll (): Promise<Array<Record<string, any>>> {
   const output = await dynamo.send(
-    new ScanCommand({ TableName: tableName })
+    new ScanCommand({ TableName: process.env.MOVIE_TABLE_URL })
   )
 
   return output.Items ?? []
@@ -51,7 +50,7 @@ async function getAll (): Promise<Array<Record<string, any>>> {
 async function getById (id: string): Promise<Record<string, any> | undefined> {
   const output = await dynamo.send(
     new GetCommand({
-      TableName: tableName,
+      TableName: process.env.MOVIE_TABLE_URL,
       Key: {
         id
       }
