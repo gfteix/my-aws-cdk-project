@@ -28,7 +28,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: ${{ github.ref == 'refs/heads/dev' || github.ref = 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}
     steps:
       - name: Set environment
         id: setvars
@@ -41,4 +41,4 @@ jobs:
           fi
       - uses: my-aws-cdk-project/.github/workflows/deploy.yml@main
         with:
-          environment: "{{setvars.outputs.environment}}"
+          environment: ${{ steps.setvars.outputs.environment }}
