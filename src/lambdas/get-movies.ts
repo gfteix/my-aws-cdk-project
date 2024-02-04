@@ -40,6 +40,7 @@ async function getAll (): Promise<Array<Record<string, any>>> {
 
   return output.Items ?? []
 }
+
 async function getById (id: string): Promise<Record<string, any> | undefined> {
   const output = await dynamo.send(
     new GetCommand({
