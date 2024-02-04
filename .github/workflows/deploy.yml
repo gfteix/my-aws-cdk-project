@@ -6,8 +6,6 @@ on:
       environment:
         type: environment
         description: Environment
-        options:
-          - dev
         default: dev
         required: true
 
