@@ -3,23 +3,16 @@ import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } f
 import { PutCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { type Movie, MovieSchema, PartialMovieSchema } from '../types/movie.interface'
 import { StatusCodes } from 'http-status-codes'
+import { badRequestError } from '../error-responses/bad-request-response'
 
 // global, to be chared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
-const tableName = process.env.MOVIE_TABLE_URL
-
-const badRequestError = (error: string): APIGatewayProxyResult => ({
-  body: JSON.stringify({
-    message: error
-  }),
-  statusCode: StatusCodes.BAD_REQUEST,
-  headers: {
-    'content-type': 'application/json'
-  }
-})
 
 export async function handler (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
+  console.log(event)
+  console.log(context)
+
   const schema = event.httpMethod === 'POST' ? MovieSchema : PartialMovieSchema
 
   if (event.body == null) {
@@ -38,7 +31,7 @@ export async function handler (event: APIGatewayProxyEvent, context: Context): P
 
   await dynamo.send(
     new PutCommand({
-      TableName: tableName,
+      TableName: process.env.MOVIE_TABLE_URL,
       Item: payload
     })
   )

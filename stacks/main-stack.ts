@@ -1,5 +1,6 @@
+/* eslint-disable no-new */
 import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { type RestApi } from 'aws-cdk-lib/aws-apigateway'
+import { ApiKey, LambdaIntegration, MethodLoggingLevel, RestApi, UsagePlan } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
@@ -7,6 +8,12 @@ import { type Construct } from 'constructs'
 import { config } from 'dotenv'
 
 config()
+
+interface MainStackFunctions {
+  upsertMovieFunction: NodejsFunction
+  getMoviesFunction: NodejsFunction
+  deleteMovieFunction: NodejsFunction
+}
 
 export class MainStack extends Stack {
   private readonly currentEnv: string
@@ -35,7 +42,7 @@ export class MainStack extends Stack {
       handler: 'handler',
       memorySize: 512,
       environment: {
-        MOVIE_TABLE_URL: process.env.MOVIE_TABLE_URL ?? '',
+        MOVIE_TABLE_URL: dynamoTable.tableName,
         CURRENT_ENV: this.currentEnv
       },
       runtime: Runtime.NODEJS_18_X,
@@ -51,7 +58,23 @@ export class MainStack extends Stack {
       handler: 'handler',
       memorySize: 512,
       environment: {
-        MOVIE_TABLE_URL: process.env.MOVIE_TABLE_URL ?? '',
+        MOVIE_TABLE_URL: dynamoTable.tableName,
+        CURRENT_ENV: this.currentEnv
+      },
+      runtime: Runtime.NODEJS_18_X,
+      timeout: Duration.seconds(10),
+      bundling: {
+        target: 'es2020'
+      }
+    })
+
+    const deleteMovieFunction = new NodejsFunction(this, `DeleteMovie-${this.currentEnv}`, {
+      entry: 'src/lambdas/delete-movie.ts',
+      functionName: `delete-movie-fn-${this.currentEnv}`,
+      handler: 'handler',
+      memorySize: 512,
+      environment: {
+        MOVIE_TABLE_URL: dynamoTable.tableName,
         CURRENT_ENV: this.currentEnv
       },
       runtime: Runtime.NODEJS_18_X,
@@ -63,61 +86,57 @@ export class MainStack extends Stack {
 
     dynamoTable.grantReadWriteData(upsertMovieFunction)
     dynamoTable.grantReadData(getMoviesFunction)
-    /*
-    this.api = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
+    dynamoTable.grantReadWriteData(deleteMovieFunction)
+
+    this.buildApiGateway({
+      getMoviesFunction,
+      upsertMovieFunction,
+      deleteMovieFunction
+    })
+  }
+
+  buildApiGateway (functions: MainStackFunctions): void {
+    const upsertIntegration = new LambdaIntegration(functions.upsertMovieFunction)
+    const getIntegration = new LambdaIntegration(functions.getMoviesFunction)
+    const deleteIntegration = new LambdaIntegration(functions.deleteMovieFunction)
+
+    const apiKey = new ApiKey(this, `ApiKey${this.currentEnv}`, {
+      apiKeyName: `movies-api-key-${this.currentEnv}`
+    })
+
+    const restApi = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
       restApiName: `movie-api-${this.currentEnv}`,
       deployOptions: {
         metricsEnabled: true,
         loggingLevel: MethodLoggingLevel.INFO,
-        dataTraceEnabled: true
+        dataTraceEnabled: true,
+        stageName: this.currentEnv
       },
       cloudWatchRole: true,
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY
     })
 
-    this.setEndpoints() */
-  }
-/*
-  private setEndpoints (): void {
-    const endpoints: EndpointDefinition[] = [
-      {
-        functionName: `upsert-movie-fn-${this.currentEnv}`,
-        method: 'POST',
-        path: 'movies'
-      },
-      {
-        functionName: `delete-movie-fn-${this.currentEnv}`,
-        method: 'DELETE',
-        path: 'movie'
-      },
-      {
-        functionName: `get-movies-fn-${this.currentEnv}`,
-        method: 'GET',
-        path: 'movies',
-        pathParameters: '{id}'
-      }
-    ]
-
-    endpoints.forEach(endpoint => {
-      const fn = Function.fromFunctionName(this, `import${endpoint.functionName}`, endpoint.functionName)
-      let resource = this.api.root.getResource(endpoint.path)
-
-      if (resource == null) {
-        resource = this.api.root.addResource(endpoint.path)
-      }
-
-      if (endpoint.pathParameters != null) {
-        resource.addResource(endpoint.pathParameters)
-        resource.addMethod(
-          endpoint.method,
-          new LambdaIntegration(fn)
-        )
-      } else {
-        resource.addMethod(
-          endpoint.method,
-          new LambdaIntegration(fn)
-        )
-      }
+    const usagePlan = new UsagePlan(this, `UsagePlan-${this.currentEnv}`, {
+      name: `Usage Plan-${this.currentEnv}`,
+      apiStages: [
+        {
+          api: restApi,
+          stage: restApi.deploymentStage
+        }
+      ]
     })
-  } */
+
+    usagePlan.addApiKey(apiKey)
+
+    const movies = restApi.root.addResource('movies')
+
+    movies.addMethod('GET', getIntegration, { apiKeyRequired: true })
+    movies.addMethod('POST', upsertIntegration, { apiKeyRequired: true })
+    movies.addMethod('PUT', upsertIntegration, { apiKeyRequired: true })
+
+    const movie = movies.addResource('{id}')
+
+    movie.addMethod('GET', getIntegration, { apiKeyRequired: true })
+    movie.addMethod('DELETE', deleteIntegration, { apiKeyRequired: true })
+  }
 }
