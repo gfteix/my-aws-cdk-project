@@ -42,4 +42,3 @@ jobs:
       - uses: my-aws-cdk-project/.github/workflows/deploy.yml@main
         with:
           environment: "{{setvars.outputs.environment}}"
-        secrets: inherit
