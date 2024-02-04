@@ -35,7 +35,7 @@ export class MainStack extends Stack {
       handler: 'handler',
       memorySize: 512,
       environment: {
-        MOVIE_TABLE_URL: process.env.MOVIE_TABLE_URL ?? '',
+        MOVIE_TABLE_URL: dynamoTable.tableName,
         CURRENT_ENV: this.currentEnv
       },
       runtime: Runtime.NODEJS_18_X,
@@ -51,7 +51,7 @@ export class MainStack extends Stack {
       handler: 'handler',
       memorySize: 512,
       environment: {
-        MOVIE_TABLE_URL: process.env.MOVIE_TABLE_URL ?? '',
+        MOVIE_TABLE_URL: dynamoTable.tableName,
         CURRENT_ENV: this.currentEnv
       },
       runtime: Runtime.NODEJS_18_X,
