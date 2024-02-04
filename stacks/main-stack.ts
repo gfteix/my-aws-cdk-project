@@ -1,6 +1,6 @@
 /* eslint-disable no-new */
 import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { AccessLogFormat, Deployment, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi, Stage } from 'aws-cdk-lib/aws-apigateway'
+import { AccessLogFormat, ApiKey, Deployment, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi, Stage, UsagePlan } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
@@ -97,40 +97,48 @@ export class MainStack extends Stack {
   }
 
   buildApiGateway (functions: MainStackFunctions): void {
+    const upsertIntegration = new LambdaIntegration(functions.upsertMovieFunction)
+    const getIntegration = new LambdaIntegration(functions.getMoviesFunction)
+    const deleteIntegration = new LambdaIntegration(functions.deleteMovieFunction)
+
+    const apiKey = new ApiKey(this, `ApiKey${this.currentEnv}`, {
+      apiKeyName: `movies-api-key-${this.currentEnv}`
+    })
+
     const restApi = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
       restApiName: `movie-api-${this.currentEnv}`,
       deployOptions: {
         metricsEnabled: true,
         loggingLevel: MethodLoggingLevel.INFO,
-        dataTraceEnabled: true
+        dataTraceEnabled: true,
+        stageName: this.currentEnv
       },
       cloudWatchRole: true,
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY
     })
 
+    const usagePlan = new UsagePlan(this, `UsagePlan-${this.currentEnv}`, {
+      name: `Usage Plan-${this.currentEnv}`,
+      apiStages: [
+        {
+          api: restApi,
+          stage: restApi.deploymentStage
+        }
+      ]
+    })
+
+    usagePlan.addApiKey(apiKey)
+
     const movies = restApi.root.addResource('movies')
 
-    movies.addMethod('GET', new LambdaIntegration(
-      functions.getMoviesFunction
-    ))
-
-    movies.addMethod('POST', new LambdaIntegration(
-      functions.upsertMovieFunction
-    ))
-
-    movies.addMethod('PUT', new LambdaIntegration(
-      functions.upsertMovieFunction
-    ))
+    movies.addMethod('GET', getIntegration, { apiKeyRequired: true })
+    movies.addMethod('POST', upsertIntegration, { apiKeyRequired: true })
+    movies.addMethod('PUT', upsertIntegration, { apiKeyRequired: true })
 
     const movie = movies.addResource('{id}')
 
-    movie.addMethod('GET', new LambdaIntegration(
-      functions.getMoviesFunction
-    ))
-
-    movie.addMethod('DELETE', new LambdaIntegration(
-      functions.deleteMovieFunction
-    ))
+    movie.addMethod('GET', getIntegration, { apiKeyRequired: true })
+    movie.addMethod('DELETE', deleteIntegration, { apiKeyRequired: true })
 
     const deployment = new Deployment(this, 'Deployment', { api: restApi })
     const deploymentLog = new LogGroup(this, `${this.currentEnv}-logs`)
