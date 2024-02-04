@@ -1,4 +1,4 @@
-name: Deploy CDK Application
+name: Deploy CDK
 
 on:
   workflow_dispatch:
@@ -6,13 +6,14 @@ on:
       environment:
         type: environment
         description: Environment
-        required: true
         default: dev
+        required: true
 
 jobs:
   deploy:
-    name: Deployment to ${{ vars.CURRENT_ENV }}
+    name: Deployment to ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
@@ -30,6 +31,6 @@ jobs:
       - name: Deploy Stack
         run: yarn deploy
         env:
-          CURRENT_ENV: ${{ vars.CURRENT_ENV }}
+          CURRENT_ENV: ${{ inputs.environment }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: us-east-1
