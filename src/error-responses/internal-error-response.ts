@@ -5,7 +5,7 @@ export const internalError = (message: string): APIGatewayProxyResult => ({
   body: JSON.stringify({
     message
   }),
-  statusCode: StatusCodes.BAD_REQUEST,
+  statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
   headers: {
     'content-type': 'application/json'
   }
