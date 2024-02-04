@@ -6,11 +6,10 @@ Allow deployment of resources to different environments by creating one Stack fo
 TODO: 
 - (DONE) Github actions to deploy application to 
 - (DONE) Github actions to run unit tests and lint for every commit pushed
-
-- Improve deploy pipeline:
+- (DONE) Improve deploy pipeline:
     - Merge on Dev Branch -> Deploy on Dev env
     - Merge on Main Branch -> Deploy on prod env
-    - Approval to deploy to prod
+    - Requires Approval to deploy to prod
 - API Gateway
 - Unit Tests
 - Update Deploy action to use OIDC instead of plain secrets

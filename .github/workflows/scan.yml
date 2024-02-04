@@ -39,7 +39,7 @@ jobs:
           if [[ "${{ github.base_ref }}" == "main" || "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "environment=prod" >> $GITHUB_OUTPUT
           fi
-      - name: Trigger deploy
+      - name: Trigger deploy to ${{ steps.setvars.outputs.environment }}
         uses: octokit/request-action@v2.x
         with:
           route: POST /repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches

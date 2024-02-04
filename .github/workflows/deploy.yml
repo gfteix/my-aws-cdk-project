@@ -1,4 +1,4 @@
-name: Deploy CDK Application
+name: Deploy CDK
 
 on:
   workflow_dispatch:
@@ -6,6 +6,8 @@ on:
       environment:
         type: environment
         description: Environment
+        options:
+          - dev
         default: dev
         required: true
 
