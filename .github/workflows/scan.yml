@@ -2,8 +2,8 @@ name: Scan
 
 on:
   push:
-      branches:
-        - '**/**'
+    branches:
+      - '**/**'
 
 jobs:
   test:
@@ -33,18 +33,16 @@ jobs:
       - name: Set environment
         id: setvars
         run: |
-          if [[ "${{github.base_ref}}" == "dev" || "${{github.ref}}" == "refs/heads/dev" ]]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
+          if [[ "${{ github.base_ref }}" == "dev" || "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo "environment=dev" >> $GITHUB_ENV
           fi
-          if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
-            echo "environment=prod" >> $GITHUB_OUTPUT
+          if [[ "${{ github.base_ref }}" == "main" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=prod" >> $GITHUB_ENV
           fi
       - name: Trigger deploy
         uses: octokit/request-action@v2.x
         with:
-          workflow_id: deploy.yml
-          route: POST /repos/${{ github.repository }}/actions/workflows/{ workflow_id }/dispatches
+          route: POST /repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches
           ref: ${{ github.ref }}
           inputs:
             environment: ${{ steps.setvars.outputs.environment }}
-
