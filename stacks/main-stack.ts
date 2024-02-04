@@ -1,5 +1,5 @@
 import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { type RestApi } from 'aws-cdk-lib/aws-apigateway'
+import { LambdaIntegration, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
@@ -61,10 +61,27 @@ export class MainStack extends Stack {
       }
     })
 
+    const deleteMovieFunction = new NodejsFunction(this, `DeleteMovie-${this.currentEnv}`, {
+      entry: 'src/lambdas/delete-movie.ts',
+      functionName: `delete-movie-fn-${this.currentEnv}`,
+      handler: 'handler',
+      memorySize: 512,
+      environment: {
+        MOVIE_TABLE_URL: dynamoTable.tableName,
+        CURRENT_ENV: this.currentEnv
+      },
+      runtime: Runtime.NODEJS_18_X,
+      timeout: Duration.seconds(10),
+      bundling: {
+        target: 'es2020'
+      }
+    })
+
     dynamoTable.grantReadWriteData(upsertMovieFunction)
     dynamoTable.grantReadData(getMoviesFunction)
-    /*
-    this.api = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
+    dynamoTable.grantReadWriteData(deleteMovieFunction)
+
+    const restApi = new RestApi(this, `ApiGateway-${this.currentEnv}`, {
       restApiName: `movie-api-${this.currentEnv}`,
       deployOptions: {
         metricsEnabled: true,
@@ -75,49 +92,31 @@ export class MainStack extends Stack {
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY
     })
 
-    this.setEndpoints() */
+    // https://copyprogramming.com/howto/how-get-path-params-in-cdk-apigateway-lambda
+    // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_apigateway-readme.html
+
+    const movies = restApi.root.addResource('movies')
+
+    movies.addMethod('GET', new LambdaIntegration(
+      getMoviesFunction
+    ))
+
+    movies.addMethod('POST', new LambdaIntegration(
+      upsertMovieFunction
+    ))
+
+    movies.addMethod('PUT', new LambdaIntegration(
+      upsertMovieFunction
+    ))
+
+    const movie = movies.addResource('{id}')
+
+    movie.addMethod('GET', new LambdaIntegration(
+      getMoviesFunction
+    ))
+
+    movie.addMethod('DELETE', new LambdaIntegration(
+      deleteMovieFunction
+    ))
   }
-/*
-  private setEndpoints (): void {
-    const endpoints: EndpointDefinition[] = [
-      {
-        functionName: `upsert-movie-fn-${this.currentEnv}`,
-        method: 'POST',
-        path: 'movies'
-      },
-      {
-        functionName: `delete-movie-fn-${this.currentEnv}`,
-        method: 'DELETE',
-        path: 'movie'
-      },
-      {
-        functionName: `get-movies-fn-${this.currentEnv}`,
-        method: 'GET',
-        path: 'movies',
-        pathParameters: '{id}'
-      }
-    ]
-
-    endpoints.forEach(endpoint => {
-      const fn = Function.fromFunctionName(this, `import${endpoint.functionName}`, endpoint.functionName)
-      let resource = this.api.root.getResource(endpoint.path)
-
-      if (resource == null) {
-        resource = this.api.root.addResource(endpoint.path)
-      }
-
-      if (endpoint.pathParameters != null) {
-        resource.addResource(endpoint.pathParameters)
-        resource.addMethod(
-          endpoint.method,
-          new LambdaIntegration(fn)
-        )
-      } else {
-        resource.addMethod(
-          endpoint.method,
-          new LambdaIntegration(fn)
-        )
-      }
-    })
-  } */
 }
