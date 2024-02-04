@@ -1,10 +1,9 @@
 /* eslint-disable no-new */
 import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { AccessLogFormat, ApiKey, Deployment, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi, Stage, UsagePlan } from 'aws-cdk-lib/aws-apigateway'
+import { ApiKey, LambdaIntegration, MethodLoggingLevel, RestApi, UsagePlan } from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
-import { LogGroup } from 'aws-cdk-lib/aws-logs'
 import { type Construct } from 'constructs'
 import { config } from 'dotenv'
 
@@ -139,25 +138,5 @@ export class MainStack extends Stack {
 
     movie.addMethod('GET', getIntegration, { apiKeyRequired: true })
     movie.addMethod('DELETE', deleteIntegration, { apiKeyRequired: true })
-
-    const deployment = new Deployment(this, 'Deployment', { api: restApi })
-    const deploymentLog = new LogGroup(this, `${this.currentEnv}-logs`)
-
-    new Stage(this, this.currentEnv, {
-      deployment,
-      stageName: this.currentEnv,
-      accessLogDestination: new LogGroupLogDestination(deploymentLog),
-      accessLogFormat: AccessLogFormat.jsonWithStandardFields({
-        caller: false,
-        httpMethod: true,
-        ip: true,
-        protocol: true,
-        requestTime: true,
-        resourcePath: true,
-        responseLength: true,
-        status: true,
-        user: true
-      })
-    })
   }
 }
