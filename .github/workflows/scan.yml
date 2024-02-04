@@ -25,7 +25,7 @@ jobs:
     - name: Lint
       run: yarn lint
 
-  deploy:
+  trigger-deploy:
     runs-on: ubuntu-latest
     needs: test
     if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}
@@ -34,11 +34,17 @@ jobs:
         id: setvars
         run: |
           if [[ "${{github.base_ref}}" == "dev" || "${{github.ref}}" == "refs/heads/dev" ]]; then
-            echo "{environment}={dev}" >> $GITHUB_OUTPUT
+            echo "environment=dev" >> $GITHUB_OUTPUT
           fi
           if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
-            echo "{environment}={prod}" >> $GITHUB_OUTPUT
+            echo "environment=prod" >> $GITHUB_OUTPUT
           fi
-      - uses: my-aws-cdk-project/.github/workflows/deploy.yml@main
+      - name: Trigger deploy
+        uses: octokit/request-action@v2.x
         with:
-          environment: ${{ steps.setvars.outputs.environment }}
+          workflow_id: deploy.yml
+          route: POST /repos/${{ github.repository }}/actions/workflows/{ workflow_id }/dispatches
+          ref: ${{ github.ref }}
+          inputs:
+            environment: ${{ steps.setvars.outputs.environment }}
+
