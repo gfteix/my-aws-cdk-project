@@ -10,16 +10,16 @@ Technologies:
 - API Gateway
 
 CI/CD Ready:
-Every commit on any branch triggers unit tests and lint validation. Any commit to the dev or main branch triggers a deployment to AWS. And each environment has its own CDK stack.
+Every commit on any branch triggers unit tests and lint validation. Any commit to the dev or main branch triggers a deployment to AWS. Each environment has its own CDK stack.
 
 
 Tasks:
 - [x] Github Actions to deploy applications to AWS
-- [x] Github Actions to run unit and lint tests for each committed commit
+- [x] Github Actions to run unit tests and lint for each commit
 - [x] Improve deployment pipeline:
     - Merge into Dev Branch -> Deploy into Dev env
-    - Merge into main branch -> Deploy to production environment
-    - Requires approval to deploy to product
+    - Merge into main branch -> Deploy to Prod environment
+    - Requires approval to deploy to production
 - [x] API Gateway
 - [] Samples to run locally
 - [] Unit tests
