@@ -17,10 +17,10 @@ Tasks:
 - [x] Github Actions to deploy applications to AWS
 - [x] Github Actions to run unit and lint tests for each committed commit
 - [x] Improve deployment pipeline:
-      - Merge into Dev Branch -> Deploy into Dev env
-      - Merge into main branch -> Deploy to production environment
-      - Requires approval to deploy to product
+    - Merge into Dev Branch -> Deploy into Dev env
+    - Merge into main branch -> Deploy to production environment
+    - Requires approval to deploy to product
 - [x] API Gateway
 - [] Samples to run locally
-- [] unitary tests
-- [] Update deployment action to use OIDC instead of simple secrets
+- [] Unit tests
+- [] Update deployment action to use OIDC instead of plain secrets
