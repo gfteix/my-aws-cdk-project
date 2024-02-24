@@ -1,17 +1,26 @@
-# AWS CDK Application
+# AWS CDK application
 
-Provisioning of a DynamoDB table and some lambdas for the CRUD operations.
+This repository contains a simple API that allows CRUD operations on a Dynamodb table.
 
-Allow deployment of resources to different environments by creating one Stack for each environment based on the CURRENT_ENV variable.
+Technologies:
+- AWS CDK as an IaC tool
+- Node/Typescript
+- AWS Lambda
+- Dynamodb
+- API Gateway
 
-TODO: 
-- [x] Github actions to deploy application to AWS
-- [x] Github actions to run unit tests and lint for every commit pushed
-- [x] Improve deploy pipeline:
-    - Merge on Dev Branch -> Deploy on Dev env
-    - Merge on Main Branch -> Deploy on prod env
-    - Requires Approval to deploy to prod
-- [ ] API Gateway
-- [ ] Samples to run locally
-- [ ] Unit Tests
-- [ ] Update Deploy action to use OIDC instead of plain secrets
+CI/CD Ready:
+Every commit on any branch triggers unit tests and lint validation. Any commit to the dev or main branch triggers a deployment to AWS. And each environment has its own CDK stack.
+
+
+Tasks:
+- [x] Github Actions to deploy applications to AWS
+- [x] Github Actions to run unit and lint tests for each committed commit
+- [x] Improve deployment pipeline:
+      - Merge into Dev Branch -> Deploy into Dev env
+      - Merge into main branch -> Deploy to production environment
+      - Requires approval to deploy to product
+- [x] API Gateway
+- [] Samples to run locally
+- [] unitary tests
+- [] Update deployment action to use OIDC instead of simple secrets

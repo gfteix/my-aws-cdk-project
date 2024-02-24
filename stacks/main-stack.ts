@@ -17,7 +17,6 @@ interface MainStackFunctions {
 
 export class MainStack extends Stack {
   private readonly currentEnv: string
-  private readonly api: RestApi
 
   constructor (scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props)
@@ -108,7 +107,7 @@ export class MainStack extends Stack {
       restApiName: `movie-api-${this.currentEnv}`,
       deployOptions: {
         metricsEnabled: true,
-        loggingLevel: MethodLoggingLevel.INFO,
+        loggingLevel: MethodLoggingLevel.ERROR,
         dataTraceEnabled: true,
         stageName: this.currentEnv
       },
