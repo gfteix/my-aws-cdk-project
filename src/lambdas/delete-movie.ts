@@ -5,7 +5,7 @@ import { type APIGatewayProxyEvent, type APIGatewayProxyResult, type Context } f
 import { badRequestError } from '../error-responses/bad-request-response'
 import { internalError } from '../error-responses/internal-error-response'
 
-// global, to be chared across close calls
+// global, to be shared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 

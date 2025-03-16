@@ -5,7 +5,7 @@ import { type Movie, MovieSchema, PartialMovieSchema } from '../types/movie.inte
 import { StatusCodes } from 'http-status-codes'
 import { badRequestError } from '../error-responses/bad-request-response'
 
-// global, to be chared across close calls
+// global, to be shared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 

@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dy
 import { StatusCodes } from 'http-status-codes'
 import { notFoundError } from '../error-responses/not-found-response'
 
-// global, to be chared across close calls
+// global, to be shared across close calls
 const client = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(client)
 
